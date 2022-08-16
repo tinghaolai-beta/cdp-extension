@@ -1,0 +1,33 @@
+{
+    "name": "Accu front dev helper",
+    "version": "1.0.0",
+    "description": ".............................",
+    "permissions": [
+        "tabs",
+        "storage",
+        "webRequest",
+        "webNavigation",
+        "scripting"
+    ],
+    "host_permissions": [
+        "http://34.81.239.199/*"
+    ],
+    "icons": {
+        "16": "images/extension-icon.png",
+        "48": "images/extension-icon.png",
+        "128": "images/extension-icon.png"
+    },
+    "background": {
+        "service_worker": "background.js"
+    },
+    "web_accessible_resources": [{
+        "resources": ["setting.json"],
+        "matches": ["<all_urls>"]
+    }],
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": "images/extension-icon.png"
+    },
+    "options_page": "options.html",
+    "manifest_version": 3
+}

@@ -1,0 +1,5 @@
+{
+    "account": "Username",
+    "password": "Password",
+    "targetSite": "Dev url, with or without protocol, such as: https://local.accu_cdp.accunix.net/"
+}
