@@ -24,24 +24,32 @@ async function getCurrentTab() {
 
 chrome.webNavigation.onCompleted.addListener(
     (tab) => {
-        if (
-            getDomain(setting.targetSite) !== getDomain(tab.url) ||
-            (
-                getPath(tab.url) !== '/login/' &&
-                getPath(tab.url) !== '/login'
-            )
-        ) {
-            return;
-        }
+        autoLogin(tab);
+    }
+);
 
-        let formData = new FormData();
-        formData.append('accunix_username', setting.account);
-        formData.append('password', setting.password);
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+});
 
-        fetch(setting.targetSite + 'api/login', {
-            method: 'POST',
-            body: formData,
-        })
+function autoLogin(tab) {
+    if (
+        getDomain(setting.targetSite) !== getDomain(tab.url) ||
+        (
+            getPath(tab.url) !== '/login/' &&
+            getPath(tab.url) !== '/login'
+        )
+    ) {
+        return;
+    }
+
+    let formData = new FormData();
+    formData.append('accunix_username', setting.account);
+    formData.append('password', setting.password);
+
+    fetch(setting.targetSite + 'api/login', {
+        method: 'POST',
+        body: formData,
+    })
         .then(response => {
             response.json().then(response => {
                 let token = response.token;
@@ -49,9 +57,22 @@ chrome.webNavigation.onCompleted.addListener(
                 chrome.scripting.executeScript({
                     args: [token, redirect],
                     func: (token, redirect) => {
+                        console.log('document.referrer: ' + document.referrer);
+
                         localStorage.setItem('login', token);
                         localStorage.setItem('checkLogin', token);
                         localStorage.setItem('userEventEndTime', Date.now());
+
+                        let path = document.referrer ? new URL(document.referrer).pathname : null;
+                        if (
+                            document.referrer &&
+                            path !== '/login' &&
+                            path !== '/login/'
+                        ) {
+                            window.location.href = document.referrer;
+                            return;
+                        }
+
                         window.location.href = redirect;
                     },
                     target: { tabId: tab.tabId },
@@ -60,11 +81,7 @@ chrome.webNavigation.onCompleted.addListener(
             });
         })
         .catch(error => alertUser(tab.tabId, 'login api error', error))
-    }
-  );
-
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-});
+}
 
 function getDomain(url) {
     return url.replace('http://','').replace('https://','').split(/[/?#]/)[0];
